@@ -7,6 +7,7 @@ This project provides an n8n workflow automation platform running in Docker for 
 ### Prerequisites
 - Docker and Docker Compose installed
 - Git installed
+- Make (for easy management)
 
 ### Setup
 
@@ -16,14 +17,32 @@ git clone https://github.com/yourusername/concert-data.git
 cd concert-data
 ```
 
-2. Start n8n:
+2. Start n8n with HTTPS:
+```bash
+make up
+```
+
+This will:
+- Install mkcert if needed
+- Generate SSL certificates
+- Start nginx and n8n services
+- Configure HTTPS automatically
+
+3. Access n8n at https://concert-data.test
+
+### Manual Setup (Alternative)
+
+If you prefer manual setup:
+
+1. Install mkcert and generate certificates:
+```bash
+make install-cert
+```
+
+2. Start services:
 ```bash
 docker-compose up -d
 ```
-
-3. Add the hostname to your hosts file (see Hostname Setup below)
-
-4. Access n8n at http://concert-data.test
 
 ### First Time Setup
 
@@ -31,23 +50,39 @@ When you first access n8n, you'll need to:
 1. Create an admin account
 2. Set up your first workflow
 
-### Hostname Setup
+## Make Commands
 
-Add the following line to your hosts file:
+This project includes a Makefile for easy management:
+
+```bash
+make help          # Show available commands
+make up            # Start all services with HTTPS
+make down          # Stop all services  
+make restart       # Restart all services
+make logs          # Show service logs
+make status        # Show service status
+make clean         # Stop services and remove certificates
+```
+
+### SSL Certificate Management
+
+The project uses mkcert for trusted local HTTPS certificates:
+
+- `make install-mkcert` - Install mkcert if not present
+- `make install-cert` - Generate SSL certificates for concert-data.test
+
+### Manual Hostname Setup (if needed)
+
+If mkcert doesn't automatically configure your hosts file, add manually:
 
 **Linux/macOS:**
 ```bash
-sudo echo "127.0.0.1 concert-data.test" >> /etc/hosts
+echo "127.0.0.1 concert-data.test" | sudo tee -a /etc/hosts
 ```
 
 **Windows:**
 ```cmd
 echo 127.0.0.1 concert-data.test >> C:\Windows\System32\drivers\etc\hosts
-```
-
-Or manually edit the hosts file and add:
-```
-127.0.0.1 concert-data.test
 ```
 
 ## Configuration
@@ -57,8 +92,8 @@ Or manually edit the hosts file and add:
 The `.env` file contains configuration options:
 
 - `N8N_HOST`: Host for n8n (default: concert-data.test)
-- `N8N_PROTOCOL`: Protocol (http/https, default: http)
-- `WEBHOOK_URL`: Base URL for webhooks
+- `N8N_PROTOCOL`: Protocol (http/https, default: https)
+- `WEBHOOK_URL`: Base URL for webhooks (default: https://concert-data.test/)
 - `TIMEZONE`: Timezone for n8n (default: Europe/Berlin)
 
 ### Data Persistence
@@ -71,42 +106,55 @@ n8n data is persisted in a Docker volume named `n8n_data`. This includes:
 
 ## Usage
 
-### Start the service
+### Start services
 ```bash
-docker-compose up -d
+make up
 ```
 
-### Stop the service
+### Stop services
 ```bash
-docker-compose down
+make down
 ```
 
 ### View logs
 ```bash
-docker-compose logs -f n8n
+make logs
+```
+
+### Check status
+```bash
+make status
 ```
 
 ### Update n8n
 ```bash
 docker-compose pull
-docker-compose up -d
+make restart
 ```
 
 ## Project Structure
 
 ```
 concert-data/
-├── docker-compose.yml  # Docker configuration
+├── docker-compose.yml  # Docker configuration with nginx + n8n
+├── Makefile           # Management commands
 ├── .env               # Environment variables
 ├── .gitignore         # Git ignore rules
-└── README.md          # This file
+├── README.md          # This file
+├── nginx/             # Nginx reverse proxy configuration
+│   └── default.conf   # SSL/HTTPS configuration
+└── ssl/               # Generated SSL certificates (ignored by git)
+    ├── concert-data.test.pem
+    └── concert-data.test-key.pem
 ```
 
 ## Security Notes
 
+- HTTPS is enabled by default using mkcert for trusted local certificates
 - For production use, set `N8N_ENCRYPTION_KEY` and `N8N_USER_MANAGEMENT_JWT_SECRET`
-- Consider using HTTPS in production
-- Restrict access to port 80 in production environments
+- Replace self-signed certificates with proper SSL certificates in production
+- Restrict access to ports 80/443 in production environments
+- The nginx configuration includes security headers for enhanced protection
 
 ## License
 
