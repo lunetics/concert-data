@@ -21,7 +21,9 @@ cd concert-data
 docker-compose up -d
 ```
 
-3. Access n8n at http://localhost:5678
+3. Add the hostname to your hosts file (see Hostname Setup below)
+
+4. Access n8n at http://concert-data.test
 
 ### First Time Setup
 
@@ -29,13 +31,32 @@ When you first access n8n, you'll need to:
 1. Create an admin account
 2. Set up your first workflow
 
+### Hostname Setup
+
+Add the following line to your hosts file:
+
+**Linux/macOS:**
+```bash
+sudo echo "127.0.0.1 concert-data.test" >> /etc/hosts
+```
+
+**Windows:**
+```cmd
+echo 127.0.0.1 concert-data.test >> C:\Windows\System32\drivers\etc\hosts
+```
+
+Or manually edit the hosts file and add:
+```
+127.0.0.1 concert-data.test
+```
+
 ## Configuration
 
 ### Environment Variables
 
 The `.env` file contains configuration options:
 
-- `N8N_HOST`: Host for n8n (default: localhost)
+- `N8N_HOST`: Host for n8n (default: concert-data.test)
 - `N8N_PROTOCOL`: Protocol (http/https, default: http)
 - `WEBHOOK_URL`: Base URL for webhooks
 - `TIMEZONE`: Timezone for n8n (default: Europe/Berlin)
@@ -85,7 +106,7 @@ concert-data/
 
 - For production use, set `N8N_ENCRYPTION_KEY` and `N8N_USER_MANAGEMENT_JWT_SECRET`
 - Consider using HTTPS in production
-- Restrict access to port 5678 in production environments
+- Restrict access to port 80 in production environments
 
 ## License
 
